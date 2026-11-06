@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IngestProof: proof your SIEM isn't silently blind</title>
+<meta name="description" content="Hosted pipeline health monitoring for MSSPs running Wazuh. End-to-end canary, ingestion completeness per client, and silent-failure alerts. Health metrics only, never your log data.">
+<style>
+  :root{--bg:#0d1117;--panel:#161b22;--line:#30363d;--text:#e6edf3;--muted:#9da7b3;--accent:#3fb950;--warn:#d29922;--bad:#f85149;--max:1040px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+  header{border-bottom:1px solid var(--line)}
+  header .wrap{display:flex;justify-content:space-between;align-items:center;height:64px}
+  .logo{font-weight:700;letter-spacing:-.02em;font-size:20px;color:var(--text);text-decoration:none}
+  .logo span{color:var(--accent)}
+  nav a{color:var(--muted);text-decoration:none;margin-left:24px;font-size:15px}
+  nav a:hover{color:var(--text)}
+  .hero{padding:96px 24px 72px}
+  .eyebrow{color:var(--accent);font:600 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;text-transform:uppercase}
+  h1{font-size:clamp(34px,5vw,54px);line-height:1.1;letter-spacing:-.03em;margin:16px 0 20px;max-width:16ch}
+  .lede{font-size:20px;color:var(--muted);max-width:60ch;margin:0 0 32px}
+  .btn{display:inline-block;background:var(--accent);color:#04120a;font-weight:600;padding:12px 22px;border-radius:8px;text-decoration:none}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);margin-left:12px}
+  section{padding:72px 0;border-top:1px solid var(--line)}
+  h2{font-size:30px;letter-spacing:-.02em;margin:0 0 12px}
+  .sub{color:var(--muted);max-width:65ch;margin:0 0 40px}
+  .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}
+  .card h3{margin:0 0 8px;font-size:17px}
+  .card p{margin:0;color:var(--muted);font-size:15px}
+  .tag{display:inline-block;font:600 12px/1 ui-monospace,Menlo,monospace;padding:4px 8px;border-radius:4px;margin-bottom:12px}
+  .t-bad{background:rgba(248,81,73,.15);color:var(--bad)}
+  .t-ok{background:rgba(63,185,80,.15);color:var(--accent)}
+  .status{white-space:pre;font:14px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px;overflow-x:auto}
+  .ok{color:var(--accent)}.warn{color:var(--warn)}.bad{color:var(--bad)}.dim{color:var(--muted)}
+  ol.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  ol.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px}
+  ol.steps li::before{content:counter(s);display:block;font:700 13px/1 ui-monospace,Menlo,monospace;color:var(--accent);margin-bottom:10px}
+  ol.steps strong{display:block;margin-bottom:6px}
+  ol.steps span{color:var(--muted);font-size:15px}
+  table{width:100%;border-collapse:collapse;font-size:15px}
+  th,td{text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600}
+  td.y{color:var(--accent)} td.n{color:var(--muted)}
+  .price{font-size:34px;font-weight:700;letter-spacing:-.02em}
+  .price small{font-size:15px;color:var(--muted);font-weight:400}
+  .card ul{padding-left:18px;margin:14px 0 0;color:var(--muted);font-size:15px}
+  .card.feat{border-color:var(--accent)}
+  .cta{text-align:center}
+  .cta .lede{margin:0 auto 28px}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:10px}
+  summary{cursor:pointer;font-weight:600}
+  details p{color:var(--muted);margin:10px 0 0}
+  footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:13px}
+  @media (max-width:640px){nav{display:none}.btn.ghost{margin:12px 0 0}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="#">Ingest<span>Proof</span></a>
+    <nav>
+      <a href="#problem">Why</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap hero">
+  <div class="eyebrow">Pipeline monitoring for MSSPs</div>
+  <h1>Proof your SIEM isn't silently blind.</h1>
+  <p class="lede">Your Wazuh dashboard can be green while events are being dropped, filebeat is stalled, or the indexer has gone read-only. IngestProof checks every client pipeline end to end and tells you before your client finds out.</p>
+  <a class="btn" href="mailto:ingestproof@proton.me?subject=IngestProof%20pilot">Request a free 30-day pilot</a>
+  <a class="btn ghost" href="#how">See how it works</a>
+</div>
+
+<section id="problem">
+  <div class="wrap">
+    <h2>"Up" is not the same as "working"</h2>
+    <p class="sub">Uptime checks and API polls miss the failures that actually cost you. These are real failure modes we have reproduced in fault-injection tests on Wazuh 4.x:</p>
+    <div class="grid">
+      <div class="card"><span class="tag t-bad">SILENT</span><h3>Service "active", daemons dead</h3><p>The manager unit reports active while wazuh-db or analysisd has died. Nothing alerts, because the thing that alerts is down.</p></div>
+      <div class="card"><span class="tag t-bad">SILENT</span><h3>Events dropped under load</h3><p>Analysisd queues fill and UDP syslog overflows. Events are discarded with no visible error, sometimes most of them.</p></div>
+      <div class="card"><span class="tag t-bad">SILENT</span><h3>Filebeat stalled</h3><p>Alerts are generated but never reach the indexer. The dashboard just shows a quiet day.</p></div>
+      <div class="card"><span class="tag t-bad">SILENT</span><h3>Indexer read-only</h3><p>Disk watermarks flip indices to read-only. Ingestion stops, and nobody notices until a client asks for an investigation.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">A small agent runs next to each manager and reports health signals to IngestProof over outbound HTTPS. You don't open any inbound ports or install any agent on endpoints.</p>
+    <ol class="steps">
+      <li><strong>End-to-end canary</strong><span>Every few minutes a marker event is injected and must become searchable in the indexer in time. One check covers the whole pipeline.</span></li>
+      <li><strong>Silent-failure checks</strong><span>Daemon state, queue drops, remoted and UDP loss, filebeat progress, indexer blocks and disk watermarks.</span></li>
+      <li><strong>Ingestion completeness</strong><span>A per-client percentage of events actually processed, ready to put in an SLA report.</span></li>
+      <li><strong>Out-of-band alerts</strong><span>Email, Slack, Telegram, or PagerDuty, sent from outside the cluster so they still fire when Wazuh is down.</span></li>
+    </ol>
+    <p class="sub" style="margin:40px 0 16px">One view across every client:</p>
+    <div class="status"><span class="dim">CLIENT            CANARY     COMPLETENESS   CHECKS</span>
+acme-logistics    <span class="ok">42s</span>        <span class="ok">99.97%</span>         <span class="ok">all ok</span>
+northwind-clinic  <span class="warn">6m 10s</span>     <span class="warn">97.80%</span>         <span class="warn">analysisd queue 91%</span>
+fabrikam-retail   <span class="bad">missing</span>    <span class="bad">--</span>             <span class="bad">indexer read-only (flood watermark)</span>
+contoso-legal     <span class="ok">38s</span>        <span class="ok">100.00%</span>        <span class="ok">all ok</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Health metrics only. Never your data.</h2>
+    <p class="sub">IngestProof never sees log content, alerts, or client data. It receives counters and check results, which keeps your data processing agreement short and your clients' security teams comfortable.</p>
+    <table>
+      <tr><th>What we receive</th><th>What we never receive</th></tr>
+      <tr><td class="y">Daemon status, queue usage, drop counters</td><td class="n">Log lines or event payloads</td></tr>
+      <tr><td class="y">Canary arrival time</td><td class="n">Alerts or rule matches</td></tr>
+      <tr><td class="y">Indexer health, disk watermarks</td><td class="n">Agent inventories, endpoint hostnames or IPs</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <h2>Simple pricing</h2>
+    <p class="sub">Priced per cluster, not per analyst seat. Pilots are free for 30 days.</p>
+    <div class="grid">
+      <div class="card"><h3>Single</h3><div class="price">€49<small>/mo per cluster</small></div><ul><li>All checks and canary</li><li>Email and Slack alerts</li><li>For in-house SOC teams</li></ul></div>
+      <div class="card feat"><h3>MSSP</h3><div class="price">€249<small>/mo</small></div><ul><li>Up to 10 client clusters</li><li>Completeness % per client</li><li>Monthly SLA report per client</li><li>All alert channels</li></ul></div>
+      <div class="card"><h3>MSSP+</h3><div class="price">€499<small>/mo</small></div><ul><li>Up to 30 client clusters</li><li>White-label client reports</li><li>Priority support</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <details><summary>Which versions are supported?</summary><p>Wazuh 4.x is supported now, and 5.x support is being developed alongside the 5.0 release candidates.</p></details>
+    <details><summary>Does it replace my SOC platform?</summary><p>No. IngestProof works next to the Wazuh dashboard, CoPilot, IRIS, or whatever you already use. It answers one question: is the pipeline actually delivering events?</p></details>
+    <details><summary>Is the agent open source?</summary><p>Yes. The detection rules and probe are open source, so you can read exactly what runs on your manager. The hosted dashboard, alerting and reports are the paid service.</p></details>
+    <details><summary>What happens if IngestProof itself goes down?</summary><p>Missing heartbeats are treated as an alert condition, and the local probe keeps alerting on its own without the hosted service.</p></details>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>Find out what your pipeline is hiding</h2>
+    <p class="lede">We're onboarding a small number of MSSPs for free 30-day pilots on one cluster, in exchange for honest feedback.</p>
+    <a class="btn" href="mailto:ingestproof@proton.me?subject=IngestProof%20pilot">Request a pilot</a>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">© 2026 IngestProof · ingestproof@proton.me · Wazuh is a trademark of Wazuh Inc. IngestProof is an independent product and is not affiliated with or endorsed by Wazuh Inc.</div>
+</footer>
+
+</body>
+</html>
